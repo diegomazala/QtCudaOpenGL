@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\CudaKernels\CudaKernels.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <CudaCompile Include="..\src\CudaKernels\CudaKernels.cu" />
     <CudaCompile Include="..\src\CudaKernels\ImageKernels.cu" />
   </ItemGroup>

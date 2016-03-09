@@ -62,7 +62,7 @@ d_passthrough_texture(uint *od, int w, int h)
 
 
 extern "C"
-void passthrough_texture(unsigned int *dOutputImage, unsigned int *dInputImage, int width, int height, int pitch)
+void passthrough_texture(unsigned int *dOutputImage, unsigned int *dInputImage, int width, int height, size_t pitch)
 {
 	// Bind the array to the texture
 	cudaChannelFormatDesc desc = cudaCreateChannelDesc<uchar4>();
