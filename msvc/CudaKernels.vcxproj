@@ -15,6 +15,7 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\src\CudaKernels\CudaKernels.cu" />
+    <CudaCompile Include="..\src\CudaKernels\ImageKernels.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\CudaKernels\CudaKernels.h" />
@@ -79,8 +80,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <Include>
-      </Include>
+      <Include>../include/cuda_common;</Include>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <CodeGeneration>compute_35,sm_35;</CodeGeneration>
       <Defines>WIN32</Defines>
@@ -111,8 +111,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <Include>
-      </Include>
+      <Include>../include/cuda_common;</Include>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
       <CodeGeneration>compute_35,sm_35;</CodeGeneration>
       <Defines>WIN32</Defines>

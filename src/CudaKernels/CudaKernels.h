@@ -79,6 +79,15 @@ extern "C"
 		float* grid_voxels_points_4f,
 		float* grid_voxels_params_2f
 		);
+
+
+	
+	void passthrough_texture(
+		unsigned int *dOutputImage, 
+		unsigned int *dInputImage,
+		int width, 
+		int height, 
+		int pitch);
 };
 
 
