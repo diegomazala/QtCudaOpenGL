@@ -15,7 +15,7 @@
 
 
 texture<uchar4, 2, cudaReadModeNormalizedFloat> uchar4Tex;
-texture<float, 2> floatTex;
+texture<float, 2, cudaReadModeElementType> floatTex;
 texture<uchar, 2> ucharTex;
 
 
@@ -122,6 +122,7 @@ d_invert_pixel_uchar(uchar* pImage, int w, int h)
 
 
 
+
 extern "C"
 {
 	void passthrough_texture_uint(uint* dOutputImage, uint* dInputImage, int width, int height, size_t pitch, bool invert_channel)
@@ -161,5 +162,5 @@ extern "C"
 	}
 
 
-
+	
 }; // extern "C"

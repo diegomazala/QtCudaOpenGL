@@ -33,7 +33,7 @@ void run_test(const QImage& inputImage, QImage& outputPassImage, QImage& outputI
 
 
 
-	uchar* dOutputImage;
+	PixelType* dOutputImage;
 	checkCudaErrors(cudaMallocPitch(
 		&dOutputImage,
 		&pitch,
