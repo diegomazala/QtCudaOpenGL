@@ -13,16 +13,31 @@
 #endif
 
 
+
+typedef unsigned char	uchar;
+typedef unsigned int	uint;
+typedef unsigned short	ushort;
+
+
 extern "C"
 {
 	void cuda_kernel(float *verts, int vertex_count, float timeElapsed);
 	
-	void passthrough_texture(
-		unsigned int *dOutputImage, 
-		unsigned int *dInputImage,
+	void passthrough_texture_uint(
+		uint* dOutputImage,
+		uint* dInputImage,
 		int width, 
 		int height, 
-		size_t pitch);
+		size_t pitch,
+		bool invert_channel);
+
+	void passthrough_texture_uchar(
+		uchar* dOutputImage,
+		uchar* dInputImage,
+		int width,
+		int height,
+		size_t pitch, 
+		bool invert_channel);
 };
 
 

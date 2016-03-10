@@ -10,6 +10,74 @@
 #include "QImageWidget.h"
 
 
+template<typename PixelType>
+void run_test(const QImage& inputImage, QImage& outputPassImage, QImage& outputInvImage)
+{
+	PixelType* hImage = (PixelType*)(inputImage.bits());
+	unsigned int width = inputImage.width();
+	unsigned int height = inputImage.height();
+
+	size_t pitch;
+
+	PixelType* dInputImage = nullptr;
+	// copy image data to array
+	checkCudaErrors(cudaMallocPitch(&dInputImage, &pitch, sizeof(PixelType) * width, height));
+	checkCudaErrors(cudaMemcpy2D(
+		dInputImage,
+		pitch,
+		hImage,
+		sizeof(PixelType) * width,
+		sizeof(PixelType) * width,
+		height,
+		cudaMemcpyHostToDevice));
+
+
+
+	uchar* dOutputImage;
+	checkCudaErrors(cudaMallocPitch(
+		&dOutputImage,
+		&pitch,
+		width * sizeof(PixelType),
+		height));
+
+
+	if (sizeof(PixelType) == 1)
+		passthrough_texture_uchar((uchar*)dOutputImage, (uchar*)dInputImage, width, height, pitch, false);
+	else
+		passthrough_texture_uint((uint*)dOutputImage, (uint*)dInputImage, width, height, pitch, false);
+
+
+	cudaMemcpy2D(
+		outputPassImage.bits(),
+		sizeof(PixelType) * width,
+		dOutputImage,
+		pitch,
+		sizeof(PixelType) * width,
+		height,
+		cudaMemcpyDeviceToHost);
+
+
+	if (sizeof(PixelType) == 1)
+		passthrough_texture_uchar((uchar*)dOutputImage, (uchar*)dInputImage, width, height, pitch, true);
+	else
+		passthrough_texture_uint((uint*)dOutputImage, (uint*)dInputImage, width, height, pitch, true);
+
+
+	cudaMemcpy2D(
+		outputInvImage.bits(),
+		sizeof(PixelType) * width,
+		dOutputImage,
+		pitch,
+		sizeof(PixelType) * width,
+		height,
+		cudaMemcpyDeviceToHost);
+
+
+	checkCudaErrors(cudaFree(dInputImage));
+	checkCudaErrors(cudaFree(dOutputImage));
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -23,75 +91,41 @@ int main(int argc, char **argv)
 	QApplication app(argc, argv);
 	app.setApplicationName("Qt Point Cloud OpenGL View");
 	
-	QImage inputImage, outputImage;
+	QImage inputImage, outputPassthroughImage, outputInvertImage;
 	if (!inputImage.load(argv[1]))
 	{
 		std::cout << "Error: Could not load file image: " << argv[1] << std::endl;
 		return EXIT_FAILURE;
 	}
-
-	outputImage = inputImage;
-
-
-
-	unsigned int* hImage = (unsigned int*)inputImage.bits();
-	unsigned int width = inputImage.width();
-	unsigned int height = inputImage.height();
-
-	size_t pitch;
-
-	unsigned int *dInputImage = nullptr;
-	// copy image data to array
-	checkCudaErrors(cudaMallocPitch(&dInputImage, &pitch, sizeof(uint)*width, height));
-	checkCudaErrors(cudaMemcpy2D(
-		dInputImage, 
-		pitch, 
-		hImage, 
-		sizeof(unsigned int) * width,
-		sizeof(unsigned int) * width,
-		height, 
-		cudaMemcpyHostToDevice));
-
 	
-
-	unsigned int *dOutputImage;
-	checkCudaErrors(cudaMallocPitch(
-		&dOutputImage, 
-		&pitch, 
-		width * sizeof(unsigned int), 
-		height));
+	outputInvertImage = outputPassthroughImage = inputImage;
 
 
-	passthrough_texture(dOutputImage, dInputImage, width, height, pitch);
+	if (inputImage.format() == QImage::Format_Indexed8)
+		run_test<uchar>(inputImage, outputPassthroughImage, outputInvertImage);
+	else
+		run_test<uint>(inputImage, outputPassthroughImage, outputInvertImage);
 
-
-	cudaMemcpy2D(
-		outputImage.bits(), 
-		sizeof(unsigned int) * width, 
-		dOutputImage,
-		pitch,
-		sizeof(unsigned int) * width, 
-		height, 
-		cudaMemcpyDeviceToHost);
-
-
-	checkCudaErrors(cudaFree(dInputImage));
-	checkCudaErrors(cudaFree(dOutputImage));
 
 
 	QImageWidget inputWidget;
 	inputWidget.setImage(inputImage);
 	inputWidget.move(0, 0);
-	inputWidget.setWindowTitle(argv[1]);
+	inputWidget.setWindowTitle("Input");
 	inputWidget.show();
 
 
-	QImageWidget outputWidget;
-	outputWidget.setImage(outputImage);
-	outputWidget.move(inputWidget.width(), 0);
-	outputWidget.setWindowTitle(argv[2]);
-	outputWidget.show();
+	QImageWidget outputPassWidget;
+	outputPassWidget.setImage(outputPassthroughImage);
+	outputPassWidget.move(0, inputWidget.height());
+	outputPassWidget.setWindowTitle("Output Passthrough");
+	outputPassWidget.show();
 
+	QImageWidget outputInvWidget;
+	outputInvWidget.setImage(outputInvertImage);
+	outputInvWidget.move(inputWidget.width(), inputWidget.height());
+	outputInvWidget.setWindowTitle("Output Inverted");
+	outputInvWidget.show();
 
 	
 

@@ -8,13 +8,15 @@
 * is strictly prohibited.
 *
 */
-
+#include "CudaKernels.h"
 #include <helper_math.h>
 #include <helper_functions.h>
 #include <helper_cuda.h>       // CUDA device initialization helper functions
 
-texture<uchar4, 2, cudaReadModeNormalizedFloat> rgbaTex;
-texture<float, 2, cudaReadModeNormalizedFloat> grayTex;
+
+texture<uchar4, 2, cudaReadModeNormalizedFloat> uchar4Tex;
+texture<float, 2> floatTex;
+texture<uchar, 2> ucharTex;
 
 
 
@@ -40,7 +42,7 @@ __device__ float4 rgbaIntToFloat(uint c)
 
 
 __global__ void
-d_passthrough_texture(uint *od, int w, int h)
+d_passthrough_texture_uint(uint* pImage, int w, int h)
 {
 	int x = blockIdx.x*blockDim.x + threadIdx.x;
 	int y = blockIdx.y*blockDim.y + threadIdx.y;
@@ -49,12 +51,71 @@ d_passthrough_texture(uint *od, int w, int h)
 	{
 		return;
 	}
-	float4 pixel = tex2D(rgbaTex, x, y);
+
+	float4 pixel = tex2D(uchar4Tex, x, y);
+	pImage[y * w + x] = rgbaFloatToInt(pixel);
+	
+	return;
+}
+
+
+
+__global__ void
+d_invert_pixel_uint(uint* pImage, int w, int h)
+{
+	int x = blockIdx.x*blockDim.x + threadIdx.x;
+	int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+	if (x >= w || y >= h)
+	{
+		return;
+	}
+
+	float4 pixel = tex2D(uchar4Tex, x, y);
 	float4 pixel_inverted;
-	pixel_inverted.x = pixel.z;
-	pixel_inverted.y = pixel.y;
-	pixel_inverted.z = pixel.x;
-	od[y * w + x] = rgbaFloatToInt(pixel_inverted);
+	pixel_inverted.x = 1.0f - pixel.z;
+	pixel_inverted.y = 1.0f - pixel.y;
+	pixel_inverted.z = 1.0f - pixel.x;
+	pImage[y * w + x] = rgbaFloatToInt(pixel_inverted);
+
+	return;
+}
+
+
+__global__ void
+d_passthrough_texture_uchar(uchar* pImage, int w, int h)
+{
+	int x = blockIdx.x*blockDim.x + threadIdx.x;
+	int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+	if (x >= w || y >= h)
+	{
+		return;
+	}
+
+	uchar pixel = tex2D(ucharTex, x, y);
+	pImage[y * w + x] = pixel;
+
+	return;
+}
+
+
+
+
+__global__ void
+d_invert_pixel_uchar(uchar* pImage, int w, int h)
+{
+	int x = blockIdx.x*blockDim.x + threadIdx.x;
+	int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+	if (x >= w || y >= h)
+	{
+		return;
+	}
+
+	uchar pixel = tex2D(ucharTex, x, y);
+	pImage[y * w + x] = 255 - pixel;
+
 	return;
 }
 
@@ -62,17 +123,43 @@ d_passthrough_texture(uint *od, int w, int h)
 
 
 extern "C"
-void passthrough_texture(unsigned int *dOutputImage, unsigned int *dInputImage, int width, int height, size_t pitch)
 {
-	// Bind the array to the texture
-	cudaChannelFormatDesc desc = cudaCreateChannelDesc<uchar4>();
-	checkCudaErrors(cudaBindTexture2D(0, rgbaTex, dInputImage, desc, width, height, pitch));
+	void passthrough_texture_uint(uint* dOutputImage, uint* dInputImage, int width, int height, size_t pitch, bool invert_channel)
+	{
+		// Bind the array to the texture
+		cudaChannelFormatDesc desc = cudaCreateChannelDesc<uchar4>();
+		checkCudaErrors(cudaBindTexture2D(0, uchar4Tex, dInputImage, desc, width, height, pitch));
 
-	const dim3 threads_per_block(16, 16);
-	dim3 num_blocks;
-	num_blocks.x = (width + threads_per_block.x - 1) / threads_per_block.x;
-	num_blocks.y = (height + threads_per_block.y - 1) / threads_per_block.y;
-	
-	d_passthrough_texture << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
-}
+		const dim3 threads_per_block(16, 16);
+		dim3 num_blocks;
+		num_blocks.x = (width + threads_per_block.x - 1) / threads_per_block.x;
+		num_blocks.y = (height + threads_per_block.y - 1) / threads_per_block.y;
 
+		if (invert_channel)
+			d_invert_pixel_uint << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
+		else
+			d_passthrough_texture_uint << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
+	}
+
+
+
+	void passthrough_texture_uchar(uchar* dOutputImage, uchar* dInputImage, int width, int height, size_t pitch, bool invert_channel)
+	{
+		// Bind the array to the texture
+		cudaChannelFormatDesc desc = cudaCreateChannelDesc<uchar>();
+		checkCudaErrors(cudaBindTexture2D(0, ucharTex, dInputImage, desc, width, height, pitch));
+
+		const dim3 threads_per_block(16, 16);
+		dim3 num_blocks;
+		num_blocks.x = (width + threads_per_block.x - 1) / threads_per_block.x;
+		num_blocks.y = (height + threads_per_block.y - 1) / threads_per_block.y;
+
+		if (invert_channel)
+			d_invert_pixel_uchar << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
+		else
+			d_passthrough_texture_uchar << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
+	}
+
+
+
+}; // extern "C"
