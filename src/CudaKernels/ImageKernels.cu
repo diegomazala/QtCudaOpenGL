@@ -14,7 +14,8 @@
 #include <helper_cuda.h>       // CUDA device initialization helper functions
 
 
-texture<uchar4, 2, cudaReadModeNormalizedFloat> uchar4Tex;
+texture<uchar4, 2, cudaReadModeNormalizedFloat> rgbaTex;
+texture<uchar4, 2, cudaReadModeElementType> uchar4Tex;
 texture<float, 2, cudaReadModeElementType> floatTex;
 texture<uchar, 2> ucharTex;
 
@@ -52,7 +53,7 @@ d_passthrough_texture_uint(uint* pImage, int w, int h)
 		return;
 	}
 
-	float4 pixel = tex2D(uchar4Tex, x, y);
+	float4 pixel = tex2D(rgbaTex, x, y);
 	pImage[y * w + x] = rgbaFloatToInt(pixel);
 	
 	return;
@@ -71,7 +72,7 @@ d_invert_pixel_uint(uint* pImage, int w, int h)
 		return;
 	}
 
-	float4 pixel = tex2D(uchar4Tex, x, y);
+	float4 pixel = tex2D(rgbaTex, x, y);
 	float4 pixel_inverted;
 	pixel_inverted.x = 1.0f - pixel.z;
 	pixel_inverted.y = 1.0f - pixel.y;
@@ -121,6 +122,25 @@ d_invert_pixel_uchar(uchar* pImage, int w, int h)
 
 
 
+__global__ void
+d_convert_rgba_to_gray(uchar* pOutImage, int w, int h)
+{
+	int x = blockIdx.x*blockDim.x + threadIdx.x;
+	int y = blockIdx.y*blockDim.y + threadIdx.y;
+
+	if (x >= w || y >= h)
+	{
+		return;
+	}
+
+	uchar4 pixel = tex2D(uchar4Tex, x, y);
+	float color = 0.299f * pixel.x + 0.587f * pixel.y + 0.114f * pixel.z;
+	pOutImage[y * w + x] = (uchar)color;
+
+	return;
+}
+
+
 
 
 extern "C"
@@ -129,7 +149,7 @@ extern "C"
 	{
 		// Bind the array to the texture
 		cudaChannelFormatDesc desc = cudaCreateChannelDesc<uchar4>();
-		checkCudaErrors(cudaBindTexture2D(0, uchar4Tex, dInputImage, desc, width, height, pitch));
+		checkCudaErrors(cudaBindTexture2D(0, rgbaTex, dInputImage, desc, width, height, pitch));
 
 		const dim3 threads_per_block(16, 16);
 		dim3 num_blocks;
@@ -159,6 +179,22 @@ extern "C"
 			d_invert_pixel_uchar << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
 		else
 			d_passthrough_texture_uchar << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
+	}
+
+
+
+	void convert_rgba_to_gray(uchar4* dInputImage, int width, int height, size_t input_pitch, uchar* dOutputImage)
+	{
+		// Bind the array to the texture
+		cudaChannelFormatDesc desc = cudaCreateChannelDesc<uchar4>();
+		checkCudaErrors(cudaBindTexture2D(0, uchar4Tex, dInputImage, desc, width, height, input_pitch));
+
+		const dim3 threads_per_block(16, 16);
+		dim3 num_blocks;
+		num_blocks.x = (width + threads_per_block.x - 1) / threads_per_block.x;
+		num_blocks.y = (height + threads_per_block.y - 1) / threads_per_block.y;
+
+		d_convert_rgba_to_gray << <  num_blocks, threads_per_block >> >(dOutputImage, width, height);
 	}
 
 

@@ -13,6 +13,7 @@
 #endif
 
 
+#include <cuda_runtime.h>
 
 typedef unsigned char	uchar;
 typedef unsigned int	uint;
@@ -38,6 +39,13 @@ extern "C"
 		int height,
 		size_t pitch, 
 		bool invert_channel);
+
+	void convert_rgba_to_gray(
+		uchar4* dInputImage,
+		int width,
+		int height,
+		size_t input_pitch,
+		uchar* dOutputImage);
 };
 
 
