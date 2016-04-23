@@ -72,7 +72,7 @@ void GLBaseWidget::initShaders()
 
 void GLBaseWidget::resizeGL(int w, int h)
 {
-	const float fovy = 45.0f;
+	const float fovy = 40.0f;
 	const float aspect_ratio = 1.77f;
 	const float near_plane = 0.1f;
 	const float far_plane = 10240.0f;

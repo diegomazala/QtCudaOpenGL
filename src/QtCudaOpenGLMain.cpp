@@ -3,6 +3,7 @@
 #include <QKeyEvent>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cuda_runtime.h>
 #include <vector_types.h>
 #include "CudaKernels/CudaKernels.h"
@@ -58,6 +59,7 @@ void save_buffer(const std::string& filename, const std::vector<T>& data)
 
 
 
+
 int main(int argc, char **argv)
 {
 	if (argc < 2)
@@ -66,14 +68,20 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	std::vector<float4> vertices;
 	std::string filename = argv[1];
 
-	std::vector<float4> src_pts, dst_pts;
-	if (!load_buffer(filename, src_pts))
+	if (!load_buffer(filename, vertices))
 	{
 		std::cerr << "Error: Could not load buffer from file " << filename << std::endl;
 		return EXIT_FAILURE;
 	}
+
+
+	// Dummy color array. Just for example
+	std::vector<float3> rgb;
+	for (int i = 0; i < vertices.size(); ++i)
+		rgb.push_back(make_float3(0, 1, 0));
 
 
 	QApplication app(argc, argv);
@@ -91,7 +99,8 @@ int main(int argc, char **argv)
 
 	GLPointCloud pointCloud;
 	pointCloud.initGL();
-	pointCloud.setVertices(&src_pts[0].x, static_cast<uint>(src_pts.size()), static_cast<uint>(4));
+	pointCloud.setVertices(&vertices[0].x, static_cast<uint>(vertices.size()), static_cast<uint>(4));
+	pointCloud.setColors(&rgb[0].x, static_cast<uint>(rgb.size()), static_cast<uint>(3));
 	glwidget.setModel(&pointCloud);
 
 

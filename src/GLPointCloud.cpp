@@ -26,7 +26,7 @@ GLPointCloud::~GLPointCloud()
 
 GLuint GLPointCloud::vertexBufferId() const
 {
-	return vertexBuf.bufferId();
+	return vertexBuf.buffer.bufferId();
 }
 
 
@@ -34,28 +34,46 @@ void GLPointCloud::initGL()
 {
 	initializeOpenGLFunctions();
 
-	vertexBuf.create();
+	vertexBuf.buffer.create();
+	colorBuf.buffer.create();
 }
 
 
 void GLPointCloud::cleanupGL()
 {
-	vertexBuf.destroy();
+	vertexBuf.buffer.destroy();
+	colorBuf.buffer.destroy();
 }
 
 
 void GLPointCloud::setVertices(const float* vertices, uint count, uint tuple_size)
 {
-	vertexCount = count;
-	tupleSize = tuple_size;
-	stride = sizeof(float) * tuple_size;
+	vertexBuf.location = 0;
+	vertexBuf.count = count;
+	vertexBuf.tuple = tuple_size;
+	vertexBuf.stride = sizeof(float) * tuple_size;
 
 
-	vertexBuf.bind();
-	vertexBuf.allocate(vertices, static_cast<int>(count * stride));
+	vertexBuf.buffer.bind();
+	vertexBuf.buffer.allocate(vertices, static_cast<int>(vertexBuf.count * vertexBuf.stride));
 	
-	cudaGraphicsGLRegisterBuffer(&cuda_vb_resource, vertexBuf.bufferId(), cudaGraphicsMapFlagsWriteDiscard);
+	cudaGraphicsGLRegisterBuffer(&cuda_vb_resource, vertexBuf.buffer.bufferId(), cudaGraphicsMapFlagsWriteDiscard);
+	vertexBuf.buffer.release();
+}
 
+
+
+void GLPointCloud::setColors(const float* colors, uint count, uint tuple_size)
+{
+	colorBuf.location = 1;
+	colorBuf.count = count;
+	colorBuf.tuple = tuple_size;
+	colorBuf.stride = sizeof(float) * tuple_size;
+
+
+	colorBuf.buffer.bind();
+	colorBuf.buffer.allocate(colors, static_cast<int>(colorBuf.count * colorBuf.stride));
+	colorBuf.buffer.release();
 }
 
 
@@ -63,7 +81,7 @@ void GLPointCloud::setVertices(const float* vertices, uint count, uint tuple_siz
 
 void GLPointCloud::render(QOpenGLShaderProgram *program)
 {
-	if (!vertexBuf.isCreated())
+	if (!vertexBuf.buffer.isCreated())
 		return;
 
 	//////////////////////////////////////////
@@ -79,20 +97,30 @@ void GLPointCloud::render(QOpenGLShaderProgram *program)
 	if (++accum % 10 == 0)
 		direction = !direction;
 
-	cuda_kernel(verts, vertexCount, dir);
+	cuda_kernel(verts, vertexBuf.count, dir);
 	cudaGraphicsUnmapResources(1, &cuda_vb_resource, 0);
 	//
 	// end Cuda code
 	//
 	//////////////////////////////////////////
 
-    vertexBuf.bind();
-	int vertexLocation = program->attributeLocation("in_position");
-	program->enableAttributeArray(vertexLocation);
-	program->setAttributeBuffer(vertexLocation, GL_FLOAT, 0, tupleSize, stride);
 
+
+	program->bind();
+
+	vertexBuf.buffer.bind();
+	program->setAttributeBuffer(vertexBuf.location, GL_FLOAT, 0, vertexBuf.tuple, vertexBuf.stride);
+	program->enableAttributeArray(vertexBuf.location);
+
+	colorBuf.buffer.bind();
+	program->setAttributeBuffer(colorBuf.location, GL_FLOAT, 0, colorBuf.tuple, colorBuf.stride);
+	program->enableAttributeArray(colorBuf.location);
 
     // Draw geometry 
-	glDrawArrays(GL_POINTS, 0, static_cast<int>(vertexCount * tupleSize));
+	glDrawArrays(GL_POINTS, 0, static_cast<int>(vertexBuf.count * vertexBuf.tuple));
+
+	vertexBuf.buffer.release();
+	colorBuf.buffer.release();
+	program->release();
 }
 

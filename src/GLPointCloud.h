@@ -4,6 +4,15 @@
 
 #include "GLModel.h"
 
+struct GLBufferArray
+{
+	QOpenGLBuffer buffer;
+	uint location;
+	uint count;
+	uint tuple;
+	uint stride;
+};
+
 class GLPointCloud : public GLModel
 {
 public:
@@ -13,6 +22,7 @@ public:
 	void render(QOpenGLShaderProgram *program);
 
 	void setVertices(const float* vertices, uint count, uint tuple_size);
+	void setColors(const float* colors, uint count, uint tuple_size);
 
 	GLuint vertexBufferId() const;
 
@@ -22,11 +32,8 @@ public slots:
 	void cleanupGL();
 
 private:
-
-    QOpenGLBuffer vertexBuf;
-	uint vertexCount;
-	uint tupleSize;
-	uint stride;
+	GLBufferArray vertexBuf;
+	GLBufferArray colorBuf;
 };
 
 #endif // _GL_POINT_CLOUD_H_
