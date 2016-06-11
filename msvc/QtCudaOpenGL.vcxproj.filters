@@ -64,6 +64,9 @@
     <CustomBuild Include="..\src\Shaders.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="GeneratedFiles\Debug\GLBaseWidget.moc">
+      <Filter>Generated Files\Debug</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\QOpenGLTrackballWidget.h">
