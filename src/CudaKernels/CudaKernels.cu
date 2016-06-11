@@ -11,29 +11,29 @@
 extern "C"
 {
 
-	__global__ void update_vb(float *verts, int vertex_count, float timeElapsed)
+	__global__ void update_vb(float *d_verts_ptr, int vertex_count, float timeElapsed)
 	{
 		const unsigned long long int threadId = blockIdx.x * blockDim.x + threadIdx.x;
 
 		if (threadId < vertex_count * 4)
 		{
-			float valx = verts[threadId * 4 + 0];
-			float valy = verts[threadId * 4 + 1];
-			float valz = verts[threadId * 4 + 2];
+			float valx = d_verts_ptr[threadId * 4 + 0];
+			float valy = d_verts_ptr[threadId * 4 + 1];
+			float valz = d_verts_ptr[threadId * 4 + 2];
 
 
-			verts[threadId * 4 + 0] = valx * timeElapsed;
-			verts[threadId * 4 + 1] = valy * timeElapsed;
-			verts[threadId * 4 + 2] = valz * timeElapsed;
+			d_verts_ptr[threadId * 4 + 0] = valx * timeElapsed;
+			d_verts_ptr[threadId * 4 + 1] = valy * timeElapsed;
+			d_verts_ptr[threadId * 4 + 2] = valz * timeElapsed;
 		}
 	}
 
-	void cuda_kernel(float *verts, int vertex_count, float timeElapsed)
+	void cuda_kernel(float *d_verts_ptr, int vertex_count, float timeElapsed)
 	{
 		if (vertex_count > 1024)
-			update_vb << <vertex_count / 1024 + 1, 1024 >> >(verts, vertex_count, timeElapsed);
+			update_vb << <vertex_count / 1024 + 1, 1024 >> >(d_verts_ptr, vertex_count, timeElapsed);
 		else
-			update_vb << <1, vertex_count >> >(verts, vertex_count, timeElapsed);
+			update_vb << <1, vertex_count >> >(d_verts_ptr, vertex_count, timeElapsed);
 	}
 
 };
