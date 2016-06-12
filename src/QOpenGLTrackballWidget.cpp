@@ -5,9 +5,12 @@
 
 
 QOpenGLTrackballWidget::QOpenGLTrackballWidget(QWidget *parent) :
-	QOpenGLWidget(parent),
-	angularSpeed(0),
-	distance(0.0)
+QOpenGLWidget(parent),
+angularSpeed(0),
+distance(0.0),
+fovy(60.0f),
+nearPlane(0.1f),
+farPlane(1024.f)
 {
 	timer.start(12, this);
 }
@@ -56,7 +59,7 @@ void QOpenGLTrackballWidget::mouseReleaseEvent(QMouseEvent *e)
 
 void QOpenGLTrackballWidget::wheelEvent(QWheelEvent* event)
 {
-	distance -= event->delta() * 0.1;
+	distance -= event->delta() * weelSpeed;
 
 	//if (distance < 0.5f)
 	//	distance = 0.5f;
@@ -76,11 +79,11 @@ void QOpenGLTrackballWidget::timerEvent(QTimerEvent *)
 	angularSpeed *= 0.95;
 
 	// Stop rotation when speed goes below threshold
-	if (angularSpeed < 0.01) 
+	if (angularSpeed < 0.01)
 	{
 		angularSpeed = 0.0;
 	}
-	else 
+	else
 	{
 		// Update rotation
 		rotation = QQuaternion::fromAxisAndAngle(rotationAxis, angularSpeed) * rotation;
@@ -91,4 +94,20 @@ void QOpenGLTrackballWidget::timerEvent(QTimerEvent *)
 }
 
 
+void QOpenGLTrackballWidget::keyReleaseEvent(QKeyEvent *e)
+{
+	if (e->key() == Qt::Key_Q || e->key() == Qt::Key_Escape)
+		this->close();
+}
 
+
+
+void QOpenGLTrackballWidget::resizeGL(int w, int h)
+{
+	projection.setToIdentity();	// Reset projection
+	projection.perspective(
+		fovy,
+		(float)w / (float)h,
+		nearPlane,
+		farPlane);	// Set perspective projection
+}

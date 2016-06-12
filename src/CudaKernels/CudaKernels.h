@@ -20,6 +20,11 @@ typedef unsigned int	uint;
 typedef unsigned short	ushort;
 
 
+static int iDivUp(int a, int b)
+{
+	return (a % b != 0) ? (a / b + 1) : (a / b);
+}
+
 extern "C"
 {
 	void cuda_kernel(float *verts, int vertex_count, float timeElapsed);
@@ -46,6 +51,11 @@ extern "C"
 		int height,
 		size_t input_pitch,
 		uchar* dOutputImage);
+
+
+
+	void volume_render_init(void *h_volume, cudaExtent volume_size);
+	void volume_render_cleanup();
 };
 
 

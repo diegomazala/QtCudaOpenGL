@@ -8,7 +8,7 @@
 #include <cuda_gl_interop.h>
 
 
-struct cudaGraphicsResource *cuda_vb_resource;
+static struct cudaGraphicsResource *cuda_vb_resource;
 static int accum = 0;
 static bool direction = true;
 
@@ -88,16 +88,16 @@ void GLPointCloud::render(QOpenGLShaderProgram *program)
 	//
 	// begin Cuda code
 	//
-	float* verts;
+	float* d_verts_ptr;
 	size_t num_bytes;
 	cudaGraphicsMapResources(1, &cuda_vb_resource, 0);
-	cudaGraphicsResourceGetMappedPointer((void **)&verts, &num_bytes, cuda_vb_resource);
+	cudaGraphicsResourceGetMappedPointer((void **)&d_verts_ptr, &num_bytes, cuda_vb_resource);
 	float dir = direction ? 1.01f : 0.99f;
 		
 	if (++accum % 10 == 0)
 		direction = !direction;
 
-	cuda_kernel(verts, vertexBuf.count, dir);
+	cuda_kernel(d_verts_ptr, vertexBuf.count, dir);
 	cudaGraphicsUnmapResources(1, &cuda_vb_resource, 0);
 	//
 	// end Cuda code
@@ -117,7 +117,7 @@ void GLPointCloud::render(QOpenGLShaderProgram *program)
 	program->enableAttributeArray(colorBuf.location);
 
     // Draw geometry 
-	glDrawArrays(GL_POINTS, 0, static_cast<int>(vertexBuf.count * vertexBuf.tuple));
+	glDrawArrays(GL_POINTS, 0, vertexBuf.count);
 
 	vertexBuf.buffer.release();
 	colorBuf.buffer.release();

@@ -84,6 +84,7 @@ int main(int argc, char **argv)
 		rgb.push_back(make_float3(0, 1, 0));
 
 
+
 	QApplication app(argc, argv);
 	app.setApplicationName("Qt Point Cloud OpenGL View");
 	QSurfaceFormat format;

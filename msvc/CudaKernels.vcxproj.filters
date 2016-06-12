@@ -18,6 +18,9 @@
     <CudaCompile Include="..\src\CudaKernels\ImageKernels.cu">
       <Filter>Cuda Files</Filter>
     </CudaCompile>
+    <CudaCompile Include="..\src\CudaKernels\VolumeRender.cu">
+      <Filter>Cuda Files</Filter>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\CudaKernels\CudaKernels.h">

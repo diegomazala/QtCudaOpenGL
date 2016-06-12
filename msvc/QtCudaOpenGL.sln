@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtCudaOpenGL", "QtCudaOpenG
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtCudaTexture", "QtCudaTexture.vcxproj", "{90794E12-8F08-4363-9333-F34291ADB2BB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VolumeRender", "VolumeRender.vcxproj", "{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -27,6 +29,10 @@ Global
 		{90794E12-8F08-4363-9333-F34291ADB2BB}.Debug|x64.Build.0 = Debug|x64
 		{90794E12-8F08-4363-9333-F34291ADB2BB}.Release|x64.ActiveCfg = Release|x64
 		{90794E12-8F08-4363-9333-F34291ADB2BB}.Release|x64.Build.0 = Release|x64
+		{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}.Debug|x64.ActiveCfg = Debug|x64
+		{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}.Debug|x64.Build.0 = Debug|x64
+		{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}.Release|x64.ActiveCfg = Release|x64
+		{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
