@@ -15,10 +15,19 @@
 
 #include <cuda_runtime.h>
 
-typedef unsigned char	uchar;
-typedef unsigned int	uint;
-typedef unsigned short	ushort;
 
+#ifndef ushort
+typedef unsigned short ushort;
+#endif
+#ifndef uchar
+typedef unsigned char uchar;
+#endif
+#ifndef uint
+typedef unsigned int uint;
+#endif
+#ifndef ulong
+typedef unsigned long ulong;
+#endif
 
 static int iDivUp(int a, int b)
 {
@@ -53,9 +62,12 @@ extern "C"
 		uchar* dOutputImage);
 
 
-
-	void volume_render_init(void *h_volume, cudaExtent volume_size);
-	void volume_render_cleanup();
+	void raycast_box(
+		uint* image_data_ref,
+		ushort width,
+		ushort height,
+		float* camera_to_world_mat3x4,
+		ushort3 box_size);
 };
 
 

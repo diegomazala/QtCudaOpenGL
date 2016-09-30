@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtCudaOpenGL", "QtCudaOpenG
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtCudaTexture", "QtCudaTexture.vcxproj", "{90794E12-8F08-4363-9333-F34291ADB2BB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VolumeRender", "VolumeRender.vcxproj", "{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RaycastBox", "RaycastBox.vcxproj", "{2FABBB48-FB5B-4D2D-BEA4-85E21C70E9DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -13,7 +13,6 @@
   <ItemGroup>
     <CudaCompile Include="..\src\CudaKernels\CudaKernels.cu" />
     <CudaCompile Include="..\src\CudaKernels\ImageKernels.cu" />
-    <CudaCompile Include="..\src\CudaKernels\VolumeRender.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\CudaKernels\CudaKernels.h" />
